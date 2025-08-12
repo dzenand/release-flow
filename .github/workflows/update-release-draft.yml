@@ -26,10 +26,10 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
-            const labels = context.payload.pull_request.labels.map(l => l.name);
+            const labels = context.payload.pull_request?.labels || [];
             const apps = labels
-              .filter(n => n.startsWith('App:'))
-              .map(n => n.split(':')[1].trim().toLowerCase());
+              .filter(n => n.name.startsWith('App:'))
+              .map(n => n.name.split(':')[1].trim().toLowerCase());
             if (apps.length === 0) core.setFailed('Missing App: <Name> label');
             core.setOutput('apps', JSON.stringify(apps));
 
