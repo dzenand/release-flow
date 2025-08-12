@@ -5,14 +5,8 @@ on:
   pull_request:
     types: [closed]
     branches: [main]
-  workflow_dispatch:
-    inputs:
-      branch:
-        description: "Branch to simulate (default: main)"
-        required: false
-        default: "main"
 
-permissions:
+    permissions:
   contents: read
 
 jobs:
@@ -52,7 +46,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Update Release Draft for ${{ matrix.app }}
+      - name: 📒 Update Release Draft for ${{ matrix.app }}
         uses: release-drafter/release-drafter@v6
         with:
           config-name: release-drafter-${{ matrix.app }}.yml
