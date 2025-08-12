@@ -2,6 +2,9 @@
 name: Update Release Draft
 
 on:
+  pull_request:
+    types: [closed]
+    branches: [main]
   workflow_dispatch:
     inputs:
       branch:
@@ -13,10 +16,12 @@ permissions:
   contents: read
 
 jobs:
-  update-draft:
+  update-release-draft:
+    if: github.event.pull_request.merged == true
     permissions:
       contents: write
       pull-requests: read
+
     runs-on: ubuntu-latest
 
     steps:
