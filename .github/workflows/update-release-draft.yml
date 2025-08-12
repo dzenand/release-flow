@@ -26,12 +26,13 @@ jobs:
             fi
           done
           echo "Changed Apps: ${apps[*]}"
-          if [ ${#apps[@]} -eq 0 ]; then
-            echo "Missing App: <Name> label"
-            exit 1
-          fi
-          echo "::set-output name=apps::$(printf '%s\n' "${apps[@]}" | jq -R . | jq -s .)"
-          echo "Extracted Apps: $(printf '%s\n' "${apps[@]}")"
+            # Always set the output, even if empty
+            echo "apps=$(printf '%s\n' "${apps[@]}" | jq -R . | jq -s .)" >> $GITHUB_OUTPUT
+            echo "Extracted Apps: $(printf '%s\n' "${apps[@]}")"
+            if [ ${#apps[@]} -eq 0 ]; then
+              echo "Missing App: <Name> label"
+              exit 1
+            fi
 
   update-app-draft:
     name: 📒 Update ${{ matrix.app }} Release Draft
