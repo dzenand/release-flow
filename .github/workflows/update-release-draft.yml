@@ -16,12 +16,13 @@ permissions:
   contents: read
 
 jobs:
-  determine-apps:
+  detect-changed-apps:
+    name: 🔍 Detect Changed Apps
     runs-on: ubuntu-latest
     outputs:
       apps: ${{ steps.extract.outputs.apps }}
     steps:
-      - name: 🔍 Extract App labels
+      - name: Extract App labels
         id: extract
         uses: actions/github-script@v6
         with:
@@ -35,8 +36,9 @@ jobs:
             console.log(`Changed Apps: ${apps.join(', ')}`);
 
   update-app-draft:
-    needs: determine-apps
-    if: github.event.pull_request.merged == true && needs.determine-apps.outputs.apps != '[]'
+    name: Update Changed Apps Release Drafts
+    needs: detect-changed-apps
+    if: github.event.pull_request.merged == true && needs.detect-changed-apps.outputs.apps != '[]'
     permissions:
       contents: write
       pull-requests: read
@@ -44,7 +46,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        app: ${{ fromJson(needs.determine-apps.outputs.apps) }}
+        app: ${{ fromJson(needs.detect-changed-apps.outputs.apps) }}
 
     steps:
       - name: Checkout repository
