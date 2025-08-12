@@ -17,16 +17,21 @@ jobs:
     steps:
       - name: 🏷️ Extract App labels
         id: extract
-        uses: actions/github-script@v6
-        with:
-          script: |
-            const labels = context.payload.pull_request?.labels || [];
-            const apps = labels
-              .filter(n => n.name.startsWith('App:'))
-              .map(n => n.name.split(':')[1].trim().toLowerCase());
-            if (apps.length === 0) core.setFailed('Missing App: <Name> label');
-            core.setOutput('apps', JSON.stringify(apps));
-            console.log(`Changed Apps: ${apps.join(', ')}`);
+        run: |
+          labels=$(jq -r '.pull_request.labels[]?.name' "$GITHUB_EVENT_PATH")
+          apps=()
+          for label in $labels; do
+            if [[ $label == App:* ]]; then
+              apps+=("${label#App: }")
+            fi
+          done
+          echo "Changed Apps: ${apps[*]}"
+          if [ ${#apps[@]} -eq 0 ]; then
+            echo "Missing App: <Name> label"
+            exit 1
+          fi
+          echo "::set-output name=apps::$(printf '%s\n' "${apps[@]}" | jq -R . | jq -s .)"
+          echo "Extracted Apps: $(printf '%s\n' "${apps[@]}")"
 
   update-app-draft:
     name: 📒 Update ${{ matrix.app }} Release Draft
