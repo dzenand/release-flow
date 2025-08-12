@@ -16,68 +16,43 @@ permissions:
   contents: read
 
 jobs:
-  update-release-draft:
-    if: github.event.pull_request.merged == true
+  determine-apps:
+    runs-on: ubuntu-latest
+    outputs:
+      apps: ${{ steps.extract.outputs.apps }}
+    steps:
+      - name: 🔍 Extract App labels
+        id: extract
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const labels = context.payload.pull_request.labels.map(l => l.name);
+            const apps = labels
+              .filter(n => n.startsWith('App:'))
+              .map(n => n.split(':')[1].trim().toLowerCase());
+            if (apps.length === 0) core.setFailed('Missing App: <Name> label');
+            core.setOutput('apps', JSON.stringify(apps));
+
+  update-app-drafts:
+    needs: determine-apps
+    if: github.event.pull_request.merged == true && needs.determine-apps.outputs.apps != '[]'
     permissions:
       contents: write
       pull-requests: read
 
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        app: ${{ fromJson(needs.determine-apps.outputs.apps) }}
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.inputs.branch }}
 
-      - name: Get PR labels via API
-        run: |
-          PR_NUMBER=$(gh pr list --state merged --limit 1 --json number --jq '.[0].number')
-          gh pr view $PR_NUMBER --json labels --jq '.labels[].name'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: 🔍 Find Associated PR
-        id: extract_labels
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const commitSha = context.sha;
-            const { data: prs } = await github.rest.search.issuesAndPullRequests({
-              q: `repo:${context.repo.owner}/${context.repo.repo} type:pr is:merged ${commitSha}`
-            });
-
-            if (prs.total_count === 0) {
-              console.log("No PR found for this commit.");
-              return;
-            }
-
-            const pr = prs.items[0];
-            const prNumber = pr.number;
-            const { data: fullPR } = await github.rest.pulls.get({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: prNumber
-            });
-
-            const labels = fullPR.labels.map(label => label.name);
-            core.setOutput('labels', labels.join(','));
-            console.log(`Labels from PR #${prNumber}: ${labels.join(', ')}`);
-
-      - name: 🔍 Determine app label
-        id: app
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const labels = context.payload.pull_request?.labels || [];
-            const appLabel = labels.find(l => l.name.startsWith('App:'));
-            if (!appLabel) core.setFailed('Missing App: <Name> label');
-            core.setOutput('app', appLabel.name.split(':')[1].trim().toLowerCase());
-
-      - name: Update Release Draft for ${{ steps.app.outputs.app }}
+      - name: Update Release Draft for ${{ matrix.app }}
         uses: release-drafter/release-drafter@v6
         with:
-          config-name: release-drafter-${{ steps.app.outputs.app }}.yml
+          config-name: release-drafter-${{ matrix.app }}.yml
           disable-autolabeler: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

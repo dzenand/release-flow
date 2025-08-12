@@ -1,8 +1,8 @@
-name-template: "Server v$RESOLVED_VERSION"
-tag-template: "server-v$RESOLVED_VERSION"
-tag-prefix: "server-v"
+name-template: "Web v$RESOLVED_VERSION"
+tag-template: "web-v$RESOLVED_VERSION"
+tag-prefix: "web-v"
 filter-by-labels: true
-include-labels: ["App: Server"]
+include-labels: ["App: Web"]
 version-resolver:
   major:
     labels:
