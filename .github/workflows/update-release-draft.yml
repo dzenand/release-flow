@@ -28,6 +28,7 @@ jobs:
             core.setOutput('apps', JSON.stringify(apps));
             core.info(`Extracted Apps: ${apps.join(', ')}`);
             if (apps.length === 0) {
+              // Output is set before failing, so context is always valid
               core.setFailed('Missing App: <Name> label');
             }
 
