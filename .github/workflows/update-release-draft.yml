@@ -59,18 +59,20 @@ jobs:
             core.setOutput('labels', labels.join(','));
             console.log(`Labels from PR #${prNumber}: ${labels.join(', ')}`);
 
-      - name: 🚀 Deploy Server App
-        if: contains(steps.extract_labels.outputs.labels, 'App: Server')
-        run: echo "Deploying Server App..."
-
-      - name: 📱 Deploy Web App
-        if: contains(steps.extract_labels.outputs.labels, 'App: Web')
-        run: echo "Deploying Web App..."
+      - name: Determine app label
+        id: app
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const labels = context.payload.pull_request?.labels || [];
+            const appLabel = labels.find(l => l.name.startsWith('App:'));
+            if (!appLabel) core.setFailed('Missing App: <Name> label');
+            core.setOutput('app', appLabel.name.split(':')[1].trim().toLowerCase());
 
       - name: Update Release Draft
         uses: release-drafter/release-drafter@v6
         with:
-          config-name: release-drafter-server.yml
+          config-name: release-drafter-${{ steps.app.outputs.result }}.yml
           disable-autolabeler: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
