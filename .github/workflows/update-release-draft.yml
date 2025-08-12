@@ -22,7 +22,7 @@ jobs:
     outputs:
       apps: ${{ steps.extract.outputs.apps }}
     steps:
-      - name: Extract App labels
+      - name: 🏷️ Extract App labels
         id: extract
         uses: actions/github-script@v6
         with:
@@ -36,7 +36,7 @@ jobs:
             console.log(`Changed Apps: ${apps.join(', ')}`);
 
   update-app-draft:
-    name: Update Changed Apps Release Drafts
+    name: 📒 Update Release Draft for ${{ matrix.app }}
     needs: detect-changed-apps
     if: github.event.pull_request.merged == true && needs.detect-changed-apps.outputs.apps != '[]'
     permissions:
