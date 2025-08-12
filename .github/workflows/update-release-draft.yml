@@ -59,14 +59,13 @@ jobs:
             core.setOutput('labels', labels.join(','));
             console.log(`Labels from PR #${prNumber}: ${labels.join(', ')}`);
 
-      - name: 🚀 Deploy Web App
+      - name: 🚀 Deploy Server App
         if: contains(steps.extract_labels.outputs.labels, 'App: Server')
-        run: echo "Deploying Web App..."
+        run: echo "Deploying Server App..."
 
       - name: 📱 Deploy Web App
         if: contains(steps.extract_labels.outputs.labels, 'App: Web')
         run: echo "Deploying Web App..."
-
 
       - name: Update Release Draft
         uses: release-drafter/release-drafter@v6
