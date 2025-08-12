@@ -19,16 +19,18 @@ jobs:
         id: extract
         run: |
           labels=$(jq -r '.pull_request.labels[]?.name' "$GITHUB_EVENT_PATH")
-          apps=()
-          for label in $labels; do
-            if [[ $label == App:* ]]; then
-              apps+=("${label#App: }")
-            fi
-          done
-          echo "Changed Apps: ${apps[*]}"
+            apps=()
+            for label in $labels; do
+              if [[ $label == App:* ]]; then
+                app_name=$(echo "${label#App:}" | xargs | tr '[:upper:]' '[:lower:]')
+                if [[ -n "$app_name" ]]; then
+                  apps+=("$app_name")
+                fi
+              fi
+            done
+            echo "Extracted Apps: $(printf '%s\n' "${apps[@]}")"
             # Always set the output, even if empty
             echo "apps=$(printf '%s\n' "${apps[@]}" | jq -R . | jq -s .)" >> $GITHUB_OUTPUT
-            echo "Extracted Apps: $(printf '%s\n' "${apps[@]}")"
             if [ ${#apps[@]} -eq 0 ]; then
               echo "Missing App: <Name> label"
               exit 1
