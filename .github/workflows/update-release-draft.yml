@@ -59,7 +59,7 @@ jobs:
             core.setOutput('labels', labels.join(','));
             console.log(`Labels from PR #${prNumber}: ${labels.join(', ')}`);
 
-      - name: Determine app label
+      - name: 🔍 Determine app label
         id: app
         uses: actions/github-script@v7
         with:
