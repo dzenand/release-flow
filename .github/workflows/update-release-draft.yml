@@ -74,10 +74,10 @@ jobs:
             if (!appLabel) core.setFailed('Missing App: <Name> label');
             core.setOutput('app', appLabel.name.split(':')[1].trim().toLowerCase());
 
-      - name: Update Release Draft
+      - name: Update Release Draft for ${{ steps.app.outputs.app }}
         uses: release-drafter/release-drafter@v6
         with:
-          config-name: release-drafter-${{ steps.app.outputs.result }}.yml
+          config-name: release-drafter-${{ steps.app.outputs.app }}.yml
           disable-autolabeler: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
