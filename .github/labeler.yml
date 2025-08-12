@@ -1,0 +1,14 @@
+"App: Server":
+  - changed-files:
+      - any-glob-to-any-file:
+          - apps/server/**/*
+
+"App: Dashboard":
+  - changed-files:
+      - any-glob-to-any-file:
+          - apps/dashboard/**/*
+
+"App: Web":
+  - changed-files:
+      - any-glob-to-any-file:
+          - apps/web/**/*

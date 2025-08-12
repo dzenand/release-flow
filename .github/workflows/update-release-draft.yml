@@ -1,0 +1,68 @@
+# .github/workflows/update-release-draft.yml
+name: Update Release Draft
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: "Branch to simulate (default: main)"
+        required: false
+        default: "main"
+
+permissions:
+  contents: read
+
+jobs:
+  update-draft:
+    permissions:
+      contents: write
+      pull-requests: read
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.branch }}
+
+      - name: Get PR labels via API
+        run: |
+          PR_NUMBER=$(gh pr list --state merged --limit 1 --json number --jq '.[0].number')
+          gh pr view $PR_NUMBER --json labels --jq '.labels[].name'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 🔍 Find Associated PR
+        id: extract_labels
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const commitSha = context.sha;
+            const { data: prs } = await github.rest.search.issuesAndPullRequests({
+              q: `repo:${context.repo.owner}/${context.repo.repo} type:pr is:merged ${commitSha}`
+            });
+
+            if (prs.total_count === 0) {
+              console.log("No PR found for this commit.");
+              return;
+            }
+
+            const pr = prs.items[0];
+            const prNumber = pr.number;
+            const { data: fullPR } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: prNumber
+            });
+
+            const labels = fullPR.labels.map(label => label.name);
+            core.setOutput('labels', labels.join(','));
+            console.log(`Labels from PR #${prNumber}: ${labels.join(', ')}`);
+
+      - name: Update Release Draft
+        uses: release-drafter/release-drafter@v6
+        with:
+          config-name: release-drafter-server.yml
+          disable-autolabeler: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
