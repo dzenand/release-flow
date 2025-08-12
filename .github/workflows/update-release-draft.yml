@@ -32,8 +32,9 @@ jobs:
               .map(n => n.name.split(':')[1].trim().toLowerCase());
             if (apps.length === 0) core.setFailed('Missing App: <Name> label');
             core.setOutput('apps', JSON.stringify(apps));
+            console.log(`Changed Apps from PR #${prNumber}: ${apps.join(', ')}`);
 
-  update-app-drafts:
+  update-app-draft:
     needs: determine-apps
     if: github.event.pull_request.merged == true && needs.determine-apps.outputs.apps != '[]'
     permissions:
