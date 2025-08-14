@@ -5,12 +5,27 @@ on:
     tags:
       - "server-v*"
       - "web-v*"
+  workflow_dispatch:
+    inputs:
+      app:
+        description: "App to process (server or web)"
+        required: true
+        type: choice
+        options:
+          - server
+          - web
+      prefix:
+        description: "Tag prefix (e.g., server-v, web-v)"
+        required: true
+        default: "server-v"
 
 jobs:
   print-server-version:
     name: Print Server Version for Tag
     runs-on: ubuntu-latest
-    if: startsWith(github.ref_name, 'server-v')
+    if: |
+      (github.event_name == 'push' && startsWith(github.ref_name, 'server-v')) ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.app == 'server')
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -21,20 +36,23 @@ jobs:
         id: get_version
         uses: ./.github/actions/get-version
         with:
-          prefix: "server-v"
+          prefix: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.prefix || 'server-v' }}
 
       - name: Print Version
         run: echo "Version is ${{ steps.get_version.outputs.version }}"
 
       - name: Print Tag Info
         run: |
-          echo "Tag: ${{ github.ref_name }}"
+          echo "Tag: ${{ github.ref_name || 'Manual trigger' }}"
           echo "Commit SHA: ${{ github.sha }}"
+          echo "Event: ${{ github.event_name }}"
 
   print-web-version:
     name: Print Web Version for Tag
     runs-on: ubuntu-latest
-    if: startsWith(github.ref_name, 'web-v')
+    if: |
+      (github.event_name == 'push' && startsWith(github.ref_name, 'web-v')) ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.app == 'web')
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -45,12 +63,13 @@ jobs:
         id: get_version
         uses: ./.github/actions/get-version
         with:
-          prefix: "web-v"
+          prefix: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.prefix || 'web-v' }}
 
       - name: Print Version
         run: echo "Version is ${{ steps.get_version.outputs.version }}"
 
       - name: Print Tag Info
         run: |
-          echo "Tag: ${{ github.ref_name }}"
+          echo "Tag: ${{ github.ref_name || 'Manual trigger' }}"
           echo "Commit SHA: ${{ github.sha }}"
+          echo "Event: ${{ github.event_name }}"
