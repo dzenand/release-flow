@@ -5,7 +5,7 @@ inputs:
   prefix:
     description: "Optional prefix for GitVersion"
     required: false
-    default: "v"
+    default: "[vV]"
 
 outputs:
   version:
