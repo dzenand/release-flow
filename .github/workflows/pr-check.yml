@@ -66,3 +66,19 @@ jobs:
 
                core.setFailed(`PR must have at least one of the following labels: ${requiredLabels.join(', ')}`);
             }
+
+  print-version:
+    name: Print Version
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Get Version
+        id: get_version
+        uses: ./.github/actions/get-version
+        with:
+          prefix: "server-v"
+
+      - name: Print Version
+        run: echo "Version is ${{ steps.get_version.outputs.version }}"

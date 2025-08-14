@@ -1,0 +1,32 @@
+name: "Get Version"
+description: "A composite action to get the version using GitVersion"
+
+inputs:
+  prefix:
+    description: "Optional prefix for GitVersion"
+    required: false
+    default: "v"
+
+outputs:
+  version:
+    description: "The version number"
+    value: ${{ steps.get_version.outputs.fullSemVer }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install GitVersion
+      uses: gittools/actions/gitversion/setup@v4
+      with:
+        versionSpec: "6.3.x"
+
+    - name: Use GitVersion
+      id: get_version
+      uses: gittools/actions/gitversion/execute@v4
+      with:
+        overrideConfig: |
+          tag-prefix: '${{ inputs.prefix }}'
+
+    - name: Set output
+      shell: bash
+      run: echo "version=${{ steps.get_version.outputs.fullSemVer }}" >> $GITHUB_OUTPUT
