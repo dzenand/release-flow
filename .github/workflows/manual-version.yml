@@ -25,4 +25,4 @@ jobs:
           prefix: ${{ github.event.inputs.prefix }}
 
       - name: Print Version
-        run: echo "Version is
+        run: echo "Version is ${{ steps.get_version.outputs.version }}"
