@@ -27,6 +27,6 @@ runs:
         overrideConfig: |
           tag-prefix=${{ inputs.prefix }}
 
-    - name: Set output
+    - name: Detected Version
       shell: bash
       run: echo "version=${{ steps.get_version.outputs.fullSemVer }}" >> $GITHUB_OUTPUT
