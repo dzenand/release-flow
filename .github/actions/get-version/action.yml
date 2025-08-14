@@ -25,7 +25,7 @@ runs:
       uses: gittools/actions/gitversion/execute@v4
       with:
         overrideConfig: |
-          tag-prefix='[${{ inputs.prefix }}]'
+          tag-prefix=${{ inputs.prefix }}
 
     - name: Set output
       shell: bash
