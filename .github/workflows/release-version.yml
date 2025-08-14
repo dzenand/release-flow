@@ -5,19 +5,40 @@ on:
     types: [published]
 
 jobs:
-  print-version:
-    name: Print Version for Release
+  print-server-version:
+    name: Print Server Version for Release
     runs-on: ubuntu-latest
     if: startsWith(github.event.release.tag_name, 'server-v')
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Get Version
         id: get_version
         uses: ./.github/actions/get-version
         with:
           prefix: "server-v"
+
+      - name: Print Version
+        run: echo "Version is ${{ steps.get_version.outputs.version }}"
+
+  print-web-version:
+    name: Print Web Version for Release
+    runs-on: ubuntu-latest
+    if: startsWith(github.event.release.tag_name, 'web-v')
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get Version
+        id: get_version
+        uses: ./.github/actions/get-version
+        with:
+          prefix: "web-v"
 
       - name: Print Version
         run: echo "Version is ${{ steps.get_version.outputs.version }}"
