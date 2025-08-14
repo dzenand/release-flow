@@ -1,0 +1,56 @@
+name: Tag Version Print
+
+on:
+  push:
+    tags:
+      - "server-v*"
+      - "web-v*"
+
+jobs:
+  print-server-version:
+    name: Print Server Version for Tag
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref_name, 'server-v')
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get Version
+        id: get_version
+        uses: ./.github/actions/get-version
+        with:
+          prefix: "server-v"
+
+      - name: Print Version
+        run: echo "Version is ${{ steps.get_version.outputs.version }}"
+
+      - name: Print Tag Info
+        run: |
+          echo "Tag: ${{ github.ref_name }}"
+          echo "Commit SHA: ${{ github.sha }}"
+
+  print-web-version:
+    name: Print Web Version for Tag
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref_name, 'web-v')
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get Version
+        id: get_version
+        uses: ./.github/actions/get-version
+        with:
+          prefix: "web-v"
+
+      - name: Print Version
+        run: echo "Version is ${{ steps.get_version.outputs.version }}"
+
+      - name: Print Tag Info
+        run: |
+          echo "Tag: ${{ github.ref_name }}"
+          echo "Commit SHA: ${{ github.sha }}"
