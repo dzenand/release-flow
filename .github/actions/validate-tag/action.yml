@@ -1,0 +1,59 @@
+name: "Validate Tag Input"
+description: "Validates if a tag input has correct format and exists in repository"
+
+inputs:
+  tag:
+    description: "Tag to validate"
+    required: true
+  prefix:
+    description: "Expected tag prefix (e.g., server-v, dashboard-v)"
+    required: true
+    default: "server-v"
+
+outputs:
+  valid:
+    description: "Whether the tag is valid (true/false)"
+    value: ${{ steps.validate.outputs.valid }}
+  exists:
+    description: "Whether the tag exists in repository (true/false)"
+    value: ${{ steps.validate.outputs.exists }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Validate tag
+      id: validate
+      shell: bash
+      run: |
+        TAG="${{ inputs.tag }}"
+        PREFIX="${{ inputs.prefix }}"
+
+        # Set default outputs
+        echo "valid=false" >> $GITHUB_OUTPUT
+        echo "exists=false" >> $GITHUB_OUTPUT
+
+        # Check if tag is empty
+        if [ -z "$TAG" ]; then
+          echo "✅ No tag provided - using current ref"
+          echo "valid=true" >> $GITHUB_OUTPUT
+          exit 0
+        fi
+
+        # Check if tag matches prefix pattern (prefix + semantic version)
+        if [[ ! $TAG =~ ^${PREFIX}[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+          echo "❌ Error: Tag '$TAG' does not match pattern '${PREFIX}X.Y.Z'"
+          echo "Expected format: ${PREFIX}1.2.3"
+          exit 1
+        fi
+
+        # Check if tag exists in repository
+        if git tag -l | grep -q "^$TAG$"; then
+          echo "✅ Tag '$TAG' exists and is valid"
+          echo "valid=true" >> $GITHUB_OUTPUT
+          echo "exists=true" >> $GITHUB_OUTPUT
+        else
+          echo "❌ Error: Tag '$TAG' does not exist in repository"
+          echo "Available ${PREFIX} tags:"
+          git tag -l "${PREFIX}*" | sort -V | head -10
+          exit 1
+        fi
